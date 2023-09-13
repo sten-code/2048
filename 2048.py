@@ -1,8 +1,30 @@
+# Standard pc version
+
 import random
 import os
 from enum import Enum
-from pynput import keyboard
-import sys
+import copy
+import keyboard
+
+
+def get_tile_color(value: int) -> tuple[str, str]: # fore, back
+    color_map = {
+        0: ("#CCC0B2", "#CCC0B2"),
+        2: ("#222222", "#EEE4DA"),
+        4: ("#222222", "#EDE0C8"),
+        8: ("#F9F6F2", "#F2B179"),
+        16: ("#F9F6F2", "#F59563"),
+        32: ("#F9F6F2", "#F67C5F"),
+        64: ("#F9F6F2", "#F65E3B"),
+        128: ("#F9F6F2", "#EDCF72"),
+        256: ("#F9F6F2", "#EDCC61"),
+        512: ("#F9F6F2", "#EDC850"),
+        1024: ("#F9F6F2", "#EDC53F"),
+        2048: ("#F9F6F2", "#EDC22E"),
+        2048: ("#F9F6F2", "#EDC22E"),
+    }
+
+    return color_map.get(value, ("#F9F6F2", "#3C3A32"))
 
 class Move(Enum):
     up = "up"
@@ -15,26 +37,53 @@ def clear_screen():
     os.system("cls" if os.name == "nt" else "clear")
 
 
+def color_text(font_color_hex, background_color_hex):
+    # Convert hex colors to RGB
+    fore_r = int(font_color_hex[1:3], 16)
+    fore_g = int(font_color_hex[3:5], 16)
+    fore_b = int(font_color_hex[5:7], 16)
+    back_r = int(background_color_hex[1:3], 16)
+    back_g = int(background_color_hex[3:5], 16)
+    back_b = int(background_color_hex[5:7], 16)
+
+    # Create ANSI escape codes for setting font and background colors
+    fore_colorcode = f"\x1b[38;2;{fore_r};{fore_g};{fore_b}m"
+    back_colorcode = f"\x1b[48;2;{back_r};{back_g};{back_b}m"
+    
+    return f"{back_colorcode}{fore_colorcode}"
+
 class Game:
     def __init__(self, size: int = 4):
+        self.out = ""
         self.board = [[0] * size for _ in range(size)]
-        self.history = []
         self.add_random_tile()
         self.add_random_tile()
 
     def render(self):
         clear_screen()
-        print("┌─────┬─────┬─────┬─────┐")
-        for i, row in enumerate(self.board):
-            text = ""
+        border = color_text("#BBADA0", "#BBADA0")
+        print(border + "                                  ")
+        for row in self.board:
+            row1 = ""
+            row2 = ""
+            row3 = ""
+            
+            reset = "\x1b[0m"
+            bold = "\x1b[1m"
             for tile in row:
-                text += "│" + (str(tile) if tile > 0 else "").center(5)
-            print(text + "│")
-            if i < len(self.board) - 1:
-                print("├─────┼─────┼─────┼─────┤")
-            else:
-                print("└─────┴─────┴─────┴─────┘")
-        print()
+                tile_str = str(tile) if tile > 0 else ""
+                fore, back = get_tile_color(tile)
+                c = color_text(fore, back)
+                row1 += f"{border}  {c}      {reset}"
+                row2 += f"{border}  {c}{bold}{tile_str.center(6)}{reset}"
+                row3 += f"{border}  {c}      {reset}"
+
+            print(row1 + border + "  ")
+            print(row2 + border + "  ")
+            print(row3 + border + "  ")
+            print(border + "                                  " + reset)
+        print(self.out)
+        self.out = ""
         if self.is_game_over():
             print("Game Over!")
             exit()
@@ -45,7 +94,10 @@ class Game:
     def add_random_tile(self):
         empty_cells = self.get_empty_cells()
         if empty_cells:
+            # choose a random empty cell to put the new one
             i, j = random.choice(empty_cells)
+
+            # 90% chance for a 2, 10% chance for a 4
             self.board[i][j] = 2 if random.random() < 0.9 else 4
 
     def _move_left(self):
@@ -66,8 +118,10 @@ class Game:
             row.extend([0] * (len(self.board) - len(row)))
 
     def move(self, move: Move) -> bool:
-        start = self.board
-        
+        # deep copy the 2d list because otherwise the 2nd dimension won't be copied with the normal .copy function
+        start = copy.deepcopy(self.board)
+
+        # rotate the board so its easier to calculate moves with 1 function
         match move:
             case Move.right:
                 self.flip_horizontal()
@@ -86,16 +140,12 @@ class Game:
                 self.flip_horizontal()
                 self.flip_vertical()
 
+        # Check if the move actually did something to check if the move was valid
         success = start != self.board
         if success:
             self.add_random_tile()
-            self.history.append(start)
 
         return success
-
-    def undo(self):
-        if len(self.history) > 0:
-            self.board = self.history.pop()
 
     def flip_horizontal(self):
         self.board = [row[::-1] for row in self.board]
@@ -123,65 +173,24 @@ class Game:
 
         return True
 
-class Bot:
-    def __init__(self, game: Game) -> None:
-        self.game = game
-    
-    def next(self) -> Move:
-        return self.minimax(4, -999999, 999999)[1]
-
-    def minimax(self, depth: int, alpha: int, beta: int) -> tuple[int, Move]:
-        if self.game.is_game_over():
-            return -999999, Move.up
-        if depth == 0:
-            return 0, Move.up
-        
-        best_eval = -999999
-        best_move = Move.up
-        for move in [Move.up, Move.left, Move.down, Move.right]:
-            self.game.move(move)
-            eval = self.minimax(depth - 1, alpha, beta)[0]
-            self.game.undo()
-            
-            if eval > best_eval:
-                best_eval = eval
-                best_move = move
-
-            alpha = max(alpha, eval)
-            if beta <= alpha:
-                break
-        return best_eval, best_move
-
 def main():
     game = Game()
-    # bot = Bot(game)
-    # while True:
-    #     game.render()
-    #     game.move(bot.next())
-    #     input()
-        
     game.render()
 
-    def on_press(key):
-        if key == keyboard.Key.esc:
-            listener.stop()
-            return
-
-        if key == keyboard.Key.up:
-            game.move(Move.up)
-        if key == keyboard.Key.down:
-            game.move(Move.down)
-        if key == keyboard.Key.left:
-            game.move(Move.left)
-        if key == keyboard.Key.right:
-            game.move(Move.right)
-        if key == keyboard.Key.backspace:
-            game.undo()
-        game.render()
-            
-
-    with keyboard.Listener(on_press=on_press) as listener:
-        listener.join()
+    running = True
+    while running:
+        event = keyboard.read_event()
+        if event.event_type == keyboard.KEY_DOWN:
+            if event.name in Move.__members__:
+                game.move(Move(event.name))
+                game.render()
+            elif event.name == "esc":
+                running = False
+            elif event.name == "r":
+                game = Game()
+                game.render()
+        elif event.event_type == keyboard.KEY_UP:
+            pass
 
 
 if __name__ == "__main__":
