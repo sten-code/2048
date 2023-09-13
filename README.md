@@ -7,17 +7,34 @@
   </p>
 </p>
 
+<h1 align="center">Support</h1>
+
+-   PC
+-   TI-84 Plus CE-T Python Edition
+-   Casio fx-CG50
+
 <h1 align="center">Usage</h1>
 
 ## Windows/Linux
 
-```bash
+```console
 python 2048.py
 ```
 
+Controls:
+
+| Action | Key         |
+| ------ | ----------- |
+| Up     | Up Arrow    |
+| Left   | Left Arrow  |
+| Down   | Down Arrow  |
+| Right  | Right Arrow |
+| Reset  | R           |
+| Exit   | Escape      |
+
 ## TI-84 Plus CE-T Python Edition
 
-I have created this in python, this means that you cannot use the standard TI-84 Plus CE-T for this. I might recreate it in C++ in the future to support the normal one too.
+I have created this in Python, this means that you cannot use the standard TI-84 Plus CE-T for this. I might recreate it in C++ in the future to support the normal one too.
 
 -   Open TI-Connect on your pc
 -   Go to the second tab from the side-bar with the document icon
@@ -43,4 +60,4 @@ Controls:
 | Reset  | 0   |
 | Exit   | 1   |
 
-After each input press `enter`
+> After each input press `enter`
