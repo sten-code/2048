@@ -7,13 +7,14 @@
   </p>
 </p>
 
-<h1 align="center">Support</h1>
+<h1 align="center">About</h1>
 
--   PC
--   TI-84 Plus CE-T Python Edition
--   Casio fx-CG50
+This project contains an implemented version of the game 2048 in Python for `PC`, `Casio fx-CG50` and `TI-84 Plus CE-T Python Edition`
 
-<h1 align="center">Usage</h1>
+There is also a C version for the TI-84 Plus CE-T.
+
+
+<h1 align="center">Usage (Python)</h1>
 
 ## Windows/Linux
 
@@ -34,7 +35,7 @@ Controls:
 
 ## TI-84 Plus CE-T Python Edition
 
-I have created this in Python, this means that you cannot use the standard TI-84 Plus CE-T for this. I might recreate it in C++ in the future to support the normal one too.
+I have created this in Python, this means that you cannot use the standard TI-84 Plus CE-T for this. You will however be able to use the version implemented in C.
 
 There aren't any colors because whenever I use color codes it makes it green and it doesn't use the hex value that I gave.
 
@@ -63,3 +64,13 @@ Controls:
 | Exit   | 1   |
 
 > After each input press `enter`
+
+<h1 align="center">Usage (C)</h1>
+
+This is only made for the TI-84 Plus CE-T.
+
+- Download the `CEdev` toolchain from [here](https://ce-programming.github.io/toolchain/static/getting-started.html).
+- Extract it into `C:\CEdev`
+- Add `C:\CEdev\bin` to your environment variables. [Here is a guide](https://www.architectryan.com/2018/03/17/add-to-the-path-on-windows-10/).
+- Clone this repository and run `make` in the root folder.
+- After that use TI-Connect to upload the `DEMO.8xp` file to your TI-84 Plus CE-T.

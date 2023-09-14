@@ -134,15 +134,15 @@ class Game:
             case Move.left:
                 self._move_left()
             case Move.up:
-                self.flip_vertical()
+                self.transpose()
                 self._move_left()
-                self.flip_vertical()
+                self.transpose()
             case Move.down:
-                self.flip_vertical()
+                self.transpose()
                 self.flip_horizontal()
                 self._move_left()
                 self.flip_horizontal()
-                self.flip_vertical()
+                self.transpose()
 
         # Check if the move actually did something to check if the move was valid
         success = start != self.board
@@ -156,7 +156,7 @@ class Game:
     def flip_horizontal(self):
         self.board = [row[::-1] for row in self.board]
 
-    def flip_vertical(self):
+    def transpose(self):
         self.board = [[row[i] for row in self.board]
                       for i in range(len(self.board[0]))]
 
