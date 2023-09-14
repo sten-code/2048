@@ -181,110 +181,8 @@ class Game:
         return True
 
 
-class Bot:
-    def __init__(self, game: Game) -> None:
-        self.game = game
-    
-    def best_move(self, depth=4):
-        def minimax(board, depth, alpha, beta, maximizing_player):
-            if depth == 0 or not any(self.game.get_empty_cells()):
-                return self.evaluate_board(board)
-
-            if maximizing_player:
-                max_eval = float('-inf')
-                for move in [Move.up, Move.down, Move.left, Move.right]:
-                    new_board = copy.deepcopy(board)
-                    if self.game.move( move):
-                        eval = minimax(new_board, depth - 1, alpha, beta, False)
-                        max_eval = max(max_eval, eval)
-                        alpha = max(alpha, eval)
-                        if beta <= alpha:
-                            break
-                return max_eval
-            else:
-                min_eval = float('inf')
-                empty_cells = self.game.get_empty_cells()
-                for (i, j) in empty_cells:
-                    for value in [2, 4]:
-                        new_board = copy.deepcopy(board)
-                        new_board[i][j] = value
-                        eval = minimax(new_board, depth - 1, alpha, beta, True)
-                        min_eval = min(min_eval, eval)
-                        beta = min(beta, eval)
-                        if beta <= alpha:
-                            break
-                return min_eval
-
-        best_score = float('-inf')
-        best_move = None
-        alpha = float('-inf')
-        beta = float('inf')
-
-        for move in [Move.up, Move.down, Move.left, Move.right]:
-            new_board = copy.deepcopy(self.game.board)
-            if self.game.move(move):
-                score = minimax(new_board, depth - 1, alpha, beta, False)
-                if score > best_score:
-                    best_score = score
-                    best_move = move
-                alpha = max(alpha, score)
-
-        return best_move
-
-    def evaluate_board(self, board):
-        # Weight matrix to evaluate the board
-        weight_matrix = [
-            [32768, 16384, 8192, 4096],
-            [2048, 1024, 512, 256],
-            [128, 64, 32, 16],
-            [8, 4, 2, 1]
-        ]
-
-        # Monotonicity heuristic
-        monotonicity_score = 0
-        for i in range(3):
-            for j in range(3):
-                if board[i][j] >= board[i + 1][j]:
-                    monotonicity_score += math.log2(board[i][j] + 1) - math.log2(board[i + 1][j] + 1)
-                if board[j][i] >= board[j][i + 1]:
-                    monotonicity_score += math.log2(board[j][i] + 1) - math.log2(board[j][i + 1] + 1)
-
-        # Smoothness heuristic
-        smoothness_score = 0
-        for i in range(len(board)):
-            for j in range(len(board[i])):
-                if board[i][j] > 0:
-                    value = math.log2(board[i][j])
-                    neighbors = []
-
-                    if i > 0:
-                        neighbors.append(board[i - 1][j])
-                    if i < len(board) - 1:
-                        neighbors.append(board[i + 1][j])
-                    if j > 0:
-                        neighbors.append(board[i][j - 1])
-                    if j < len(board[i]) - 1:
-                        neighbors.append(board[i][j + 1])
-
-                    for neighbor in neighbors:
-                        smoothness_score -= abs(math.log2(neighbor) - value)
-
-        score = 0
-
-        for i in range(len(board)):
-            for j in range(len(board[i])):
-                tile = board[i][j]
-                if tile == 0:
-                    continue
-
-                # Calculate the score based on the value of the tile and its position
-                score += tile * weight_matrix[i][j]
-
-        return score + monotonicity_score + smoothness_score
-
 def main():
     game = Game()
-    bot = Bot(game)
     try:
         with open("save.json", "r") as f:
             game.board = json.load(f)
@@ -294,23 +192,18 @@ def main():
 
     running = True
     while running:
-        # event = keyboard.read_event()
-        # if event.event_type == keyboard.KEY_DOWN:
-        #     if event.name in Move.__members__:
-        #         game.move(Move(event.name))
-        #         game.render()
-        #     elif event.name == "esc":
-        #         running = False
-        #     elif event.name == "r":
-        #         game = Game()
-        #         game.render()
-        # elif event.event_type == keyboard.KEY_UP:
-        #     pass
-        move = bot.best_move()
-        game.move(move)
-        game.render()
-        game.out += str(move)
-        input()
+        event = keyboard.read_event()
+        if event.event_type == keyboard.KEY_DOWN:
+            if event.name in Move.__members__:
+                game.move(Move(event.name))
+                game.render()
+            elif event.name == "esc":
+                running = False
+            elif event.name == "r":
+                game = Game()
+                game.render()
+        elif event.event_type == keyboard.KEY_UP:
+            pass
 
 
 if __name__ == "__main__":

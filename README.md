@@ -36,6 +36,8 @@ Controls:
 
 I have created this in Python, this means that you cannot use the standard TI-84 Plus CE-T for this. I might recreate it in C++ in the future to support the normal one too.
 
+There aren't any colors because whenever I use color codes it makes it green and it doesn't use the hex value that I gave.
+
 -   Open TI-Connect on your pc
 -   Go to the second tab from the side-bar with the document icon
 -   Connect your calculator with the Mini-USB cable to your pc
