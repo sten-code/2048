@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <stdio.h>
+#include <fileioc.h>
 #include "graphics.h"
 
 // Settings
@@ -49,6 +50,9 @@ void copy2DArray(int source[BOARD_SIZE][BOARD_SIZE], int destination[BOARD_SIZE]
 typedef struct
 {
     int board[BOARD_SIZE][BOARD_SIZE];
+    int score;
+    int best_score;
+    int file_handle;
 } Game;
 
 void add_random_tile(Game *game)
@@ -82,6 +86,8 @@ void add_random_tile(Game *game)
 
 void init_game(Game *game)
 {
+    game->score = 0;
+
     // Ensure that the game contains all 0 tiles
     for (int i = 0; i < BOARD_SIZE; i++)
     {
@@ -94,9 +100,32 @@ void init_game(Game *game)
     // Add two random tiles at the beginning
     add_random_tile(game);
     add_random_tile(game);
+
+    int handle = ti_Open("data2048", "r+");
+    int data[1] = {0};
+
+    if (handle)
+    {
+        ti_Read(data, sizeof(int), 1, handle);
+        game->file_handle = ti_Open("data2048", "w+");
+    }
+    else
+    {
+        game->file_handle = ti_Open("data2048", "w+");
+        ti_Write(data, sizeof(int), 1, game->file_handle);
+    }
+
+    game->best_score = data[0];
 }
 
-void clear() {
+void save_game(Game *game)
+{
+    int data[1] = {game->best_score};
+    ti_Write(data, sizeof(int), 1, game->file_handle);
+}
+
+void clear()
+{
     int size = BOARD_SIZE * (TILE_SIZE + TILE_PADDING) + 10 + TILE_PADDING;
     gfx_SetColor(15);
     RoundFillRectangle(
@@ -105,7 +134,6 @@ void clear() {
         size,
         size,
         7);
-
 }
 
 void render(Game *game)
@@ -118,6 +146,14 @@ void render(Game *game)
     gfx_PrintStringXY("Score", size + 50, 80);
     gfx_PrintStringXY("Best", size + 55, 130);
 
+    char score[10];
+    sprintf(score, "%d", game->score);
+
+    char best_score[10];
+    sprintf(best_score, "%d", game->best_score);
+    gfx_SetTextFGColor(13);
+    gfx_PrintStringXY(score, size + 70 - gfx_GetStringWidth(score) / 2, 95);
+    gfx_PrintStringXY(best_score, size + 70 - gfx_GetStringWidth(best_score) / 2, 145);
 
     for (int i = 0; i < BOARD_SIZE; i++)
     {
@@ -129,7 +165,9 @@ void render(Game *game)
             int cx = x + TILE_SIZE / 2;
             int cy = y + TILE_SIZE / 2;
 
-            if (tile == 2)
+            if (tile == 0)
+                gfx_SetColor(0);
+            else if (tile == 2)
                 gfx_SetColor(1);
             else if (tile == 4)
                 gfx_SetColor(2);
@@ -151,10 +189,8 @@ void render(Game *game)
                 gfx_SetColor(10);
             else if (tile == 2048)
                 gfx_SetColor(11);
-            else if (tile > 2048)
-                gfx_SetColor(12);
             else
-                gfx_SetColor(0);
+                gfx_SetColor(12);
 
             RoundFillRectangle(x, y, TILE_SIZE, TILE_SIZE, 7);
             if (tile != 0)
@@ -207,6 +243,8 @@ void move_left(Game *game)
             {
                 game->board[i][k] *= 2;
                 game->board[i][k + 1] = 0;
+                game->score += game->board[i][k];
+                save_game(game);
                 k++;
             }
         }
@@ -355,5 +393,6 @@ int main(void)
 
     // Exit
     gfx_End();
+    ti_Close(game.file_handle);
     return 0;
 }
