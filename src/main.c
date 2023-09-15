@@ -83,11 +83,9 @@ void add_random_tile(Game *game)
     }
 }
 
-void init_game(Game *game)
+void reset_game(Game *game)
 {
     game->score = 0;
-
-    // Ensure that the game contains all 0 tiles
     for (int i = 0; i < BOARD_SIZE; i++)
     {
         for (int j = 0; j < BOARD_SIZE; j++)
@@ -95,6 +93,15 @@ void init_game(Game *game)
             game->board[i][j] = 0;
         }
     }
+    
+    // Add two random tiles at the beginning
+    add_random_tile(game);
+    add_random_tile(game);
+}
+
+void init_game(Game *game)
+{
+    reset_game(game);
 
     int handle = ti_Open("data2048", "r");
     int data[18];
@@ -105,7 +112,8 @@ void init_game(Game *game)
     }
     else
     {
-        for (int i = 0; i < 18; i++) {
+        for (int i = 0; i < 18; i++)
+        {
             data[i] = 0;
         }
         int handle = ti_Open("data2048", "w+");
@@ -118,12 +126,14 @@ void init_game(Game *game)
     for (int i = 0; i < 16; i++)
     {
         game->board[i / 4][i % 4] = data[i + 2];
-        if (data[i + 1] != 0) {
+        if (data[i + 1] != 0)
+        {
             allZero = 0;
         }
     }
 
-    if (allZero) {
+    if (allZero)
+    {
         // Add two random tiles at the beginning
         add_random_tile(game);
         add_random_tile(game);
@@ -145,13 +155,57 @@ void save_game(Game *game)
     ti_Close(handle);
 }
 
+
+int is_game_over(Game *game)
+{
+    // Check if there are any empty cells
+    for (int i = 0; i < BOARD_SIZE; i++)
+    {
+        for (int j = 0; j < BOARD_SIZE; j++)
+        {
+            if (game->board[i][j] == 0)
+            {
+                return false; // There is an empty cell, the game is not over
+            }
+        }
+    }
+
+    // Check for possible tile merges horizontally
+    for (int i = 0; i < BOARD_SIZE; i++)
+    {
+        for (int j = 0; j < BOARD_SIZE - 1; j++)
+        {
+            if (game->board[i][j] == game->board[i][j + 1])
+            {
+                return false; // There are potential horizontal merges
+            }
+        }
+    }
+
+    // Check for possible tile merges vertically
+    for (int i = 0; i < BOARD_SIZE - 1; i++)
+    {
+        for (int j = 0; j < BOARD_SIZE; j++)
+        {
+            if (game->board[i][j] == game->board[i + 1][j])
+            {
+                return false; // There are potential vertical merges
+            }
+        }
+    }
+
+    // No empty cells and no potential merges, the game is over
+    return true;
+}
+
+
 void clear()
 {
-    int size = BOARD_SIZE * (TILE_SIZE + TILE_PADDING) + 10 + TILE_PADDING;
+    int size = BOARD_SIZE * (TILE_SIZE + TILE_PADDING) + TILE_PADDING;
     gfx_SetColor(15);
     RoundFillRectangle(
-        BOARD_X - 10,
-        BOARD_Y - 10,
+        BOARD_X - TILE_PADDING,
+        BOARD_Y - TILE_PADDING,
         size,
         size,
         10);
@@ -237,6 +291,29 @@ void render(Game *game)
                 gfx_PrintStringXY(str, sx, sy);
             }
         }
+    }
+
+    if (is_game_over(game))
+    {
+        gfx_SetColor(0);
+        int width = BOARD_SIZE * (TILE_SIZE + TILE_PADDING) - TILE_PADDING;
+        int height = (BOARD_SIZE - 2) * (TILE_SIZE + TILE_PADDING) - TILE_PADDING;
+        int y = BOARD_Y + TILE_SIZE + TILE_PADDING;
+        RoundFillRectangle(
+            BOARD_X, 
+            y, 
+            width, 
+            height,
+            6
+        );
+        gfx_SetTextFGColor(13);
+        gfx_SetTextScale(2, 2); 
+        gfx_PrintStringXY("Game Over!", BOARD_X + width / 2 - gfx_GetStringWidth("Game Over!") / 2, y + height / 2 - 7);
+        gfx_SetTextScale(1, 1);
+        while (!os_GetCSC());
+        reset_game(game);
+        clear();
+        render(game);
     }
 }
 
