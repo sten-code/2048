@@ -73,4 +73,4 @@ This is only made for the TI-84 Plus CE-T.
 - Extract it into `C:\CEdev`
 - Add `C:\CEdev\bin` to your environment variables. [Here is a guide](https://www.architectryan.com/2018/03/17/add-to-the-path-on-windows-10/).
 - Clone this repository and run `make` in the root folder.
-- After that use TI-Connect to upload the `DEMO.8xp` file to your TI-84 Plus CE-T.
+- After that use TI-Connect to upload the `2048CE.8xp` file to your TI-84 Plus CE-T.
