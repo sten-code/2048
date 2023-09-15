@@ -11,7 +11,7 @@
 
 This project contains an implemented version of the game 2048 in Python for `PC`, `Casio fx-CG50` and `TI-84 Plus CE-T Python Edition`
 
-There is also a C version for the TI-84 Plus CE-T.
+There is also a C version for the `TI-84 Plus CE-T`.
 
 
 <h1 align="center">Usage (Python)</h1>
