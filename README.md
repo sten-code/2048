@@ -3,7 +3,7 @@
 <p align="center">
   <img src="https://raw.githubusercontent.com/sten-code/2048/master/board.png" width="300">
   <p align="center">
-    2048 in the Terminal
+    2048 in the Terminal and Graphing Calculator
   </p>
 </p>
 
