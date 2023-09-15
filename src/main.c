@@ -52,7 +52,6 @@ typedef struct
     int board[BOARD_SIZE][BOARD_SIZE];
     int score;
     int best_score;
-    int file_handle;
 } Game;
 
 void add_random_tile(Game *game)
@@ -101,18 +100,18 @@ void init_game(Game *game)
     add_random_tile(game);
     add_random_tile(game);
 
-    int handle = ti_Open("data2048", "r+");
-    int data[1] = {0};
+    int handle = ti_Open("data2048", "r");
+    int data[1];
 
     if (handle)
     {
         ti_Read(data, sizeof(int), 1, handle);
-        game->file_handle = ti_Open("data2048", "w+");
     }
     else
     {
-        game->file_handle = ti_Open("data2048", "w+");
-        ti_Write(data, sizeof(int), 1, game->file_handle);
+        data[0] = 0;
+        int handle = ti_Open("data2048", "w+");
+        ti_Write(data, sizeof(int), 1, handle);
     }
 
     game->best_score = data[0];
@@ -120,8 +119,10 @@ void init_game(Game *game)
 
 void save_game(Game *game)
 {
+    int handle = ti_Open("data2048", "w+");
     int data[1] = {game->best_score};
-    ti_Write(data, sizeof(int), 1, game->file_handle);
+    ti_Write(data, sizeof(int), 1, handle);
+    ti_Close(handle);
 }
 
 void clear()
@@ -133,7 +134,7 @@ void clear()
         BOARD_Y - 10,
         size,
         size,
-        7);
+        10);
 }
 
 void render(Game *game)
@@ -244,6 +245,10 @@ void move_left(Game *game)
                 game->board[i][k] *= 2;
                 game->board[i][k + 1] = 0;
                 game->score += game->board[i][k];
+                if (game->score > game->best_score)
+                {
+                    game->best_score = game->score;
+                }
                 save_game(game);
                 k++;
             }
@@ -392,7 +397,7 @@ int main(void)
     }
 
     // Exit
+    save_game(&game);
     gfx_End();
-    ti_Close(game.file_handle);
     return 0;
 }
