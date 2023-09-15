@@ -96,32 +96,52 @@ void init_game(Game *game)
         }
     }
 
-    // Add two random tiles at the beginning
-    add_random_tile(game);
-    add_random_tile(game);
-
     int handle = ti_Open("data2048", "r");
-    int data[1];
+    int data[18];
 
     if (handle)
     {
-        ti_Read(data, sizeof(int), 1, handle);
+        ti_Read(data, sizeof(int), 18, handle);
     }
     else
     {
-        data[0] = 0;
+        for (int i = 0; i < 18; i++) {
+            data[i] = 0;
+        }
         int handle = ti_Open("data2048", "w+");
-        ti_Write(data, sizeof(int), 1, handle);
+        ti_Write(data, sizeof(int), 18, handle);
     }
 
     game->best_score = data[0];
+    game->score = data[1];
+    int allZero = 1;
+    for (int i = 0; i < 16; i++)
+    {
+        game->board[i / 4][i % 4] = data[i + 2];
+        if (data[i + 1] != 0) {
+            allZero = 0;
+        }
+    }
+
+    if (allZero) {
+        // Add two random tiles at the beginning
+        add_random_tile(game);
+        add_random_tile(game);
+    }
 }
 
 void save_game(Game *game)
 {
     int handle = ti_Open("data2048", "w+");
-    int data[1] = {game->best_score};
-    ti_Write(data, sizeof(int), 1, handle);
+    int data[18] = {game->best_score, game->score};
+
+    for (int i = 0; i < 4; i++)
+    {
+        for (int j = 0; j < 4; j++)
+            data[i * 4 + j + 2] = game->board[i][j];
+    }
+
+    ti_Write(data, sizeof(int), 18, handle);
     ti_Close(handle);
 }
 
@@ -152,6 +172,7 @@ void render(Game *game)
 
     char best_score[10];
     sprintf(best_score, "%d", game->best_score);
+
     gfx_SetTextFGColor(13);
     gfx_PrintStringXY(score, size + 70 - gfx_GetStringWidth(score) / 2, 95);
     gfx_PrintStringXY(best_score, size + 70 - gfx_GetStringWidth(best_score) / 2, 145);
