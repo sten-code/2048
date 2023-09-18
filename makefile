@@ -2,13 +2,13 @@
 # Makefile Options
 # ----------------------------
 
-NAME = 2048CE
+NAME = CE2048
 ICON = icon.png
 DESCRIPTION = "The game 2048"
 COMPRESSED = NO
 
-CFLAGS = -Wall -Wextra -Oz -Wimplicit-function-declaration
-CXXFLAGS = -Wall -Wextra -Oz -Wimplicit-function-declaration
+CFLAGS = -Wall -Wextra -Oz
+CXXFLAGS = -Wall -Wextra -Oz
 
 # ----------------------------
 
